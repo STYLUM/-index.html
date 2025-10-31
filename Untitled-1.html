@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STYLUM Store</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #fff; color: #000; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #ccc; }
+    header h1 span:first-child { color: #000; } header h1 span:last-child { color: #facc15; }
+    .cart-icon { cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .hero { position: relative; text-align: center; color: #fff; padding: 80px 20px; background: url('https://images.unsplash.com/photo-1622495893725-975f9e5a2f1d?auto=format&fit=crop&w=1600&q=80') center/cover; }
+    .hero::after { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,0.7); }
+    .hero-content { position: relative; z-index: 1; }
+    .hero h2 { font-size: 48px; font-weight: bold; margin-bottom: 10px; }
+    .hero p { color: #facc15; font-size: 18px; }
+    .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
+    .product { border: 1px solid #ccc; border-radius: 10px; overflow: hidden; text-align: center; background: #fff; }
+    .product img { width: 100%; height: 250px; object-fit: cover; }
+    .product h3 { margin: 10px 0; }
+    .product p { color: #facc15; font-weight: bold; }
+    .product button { background: #000; color: #fff; padding: 10px; border: none; cursor: pointer; width: 100%; }
+    .product button:hover { background: #facc15; color: #000; }
+    .cart-popup { position: fixed; top: 80px; right: 20px; background: #fff; border: 1px solid #ccc; border-radius: 10px; width: 300px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: none; z-index: 1000; }
+    .cart-popup h3 { margin-bottom: 10px; }
+    .cart-popup ul { max-height: 150px; overflow-y: auto; margin-bottom: 10px; padding: 0; list-style: none; }
+    .cart-popup li { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 5px 0; }
+    .cart-popup .total { font-weight: bold; margin-top: 10px; }
+    .checkout-btn { background: #facc15; color: #000; font-weight: bold; padding: 10px; width: 100%; border: none; cursor: pointer; }
+    footer { text-align: center; padding: 20px; background: #000; color: #fff; margin-top: 20px; }
+
+    /* Modales */
+    #payment-options, #alias-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 20px;
+      width: 320px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 9999;
+      text-align: center;
+    }
+    #payment-options h3, #alias-modal h3 { margin-bottom: 15px; }
+    #payment-options button, #alias-modal button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+    #pay-card { background: #000; color: #fff; }
+    #pay-card:hover { background: #facc15; color: #000; }
+    #cancel-btn { background: #ccc; }
+
+    /* Sección de contacto */
+    .contact-section {
+      background: #f3f3f3;
+      text-align: center;
+      padding: 30px;
+      margin-top: 20px;
+    }
+    .contact-section h3 {
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+    .contact-section p {
+      font-size: 18px;
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><span>STY</span><span>LUM</span></h1>
+    <div class="cart-icon" onclick="toggleCart()">
+      🛒 <span id="cart-count">0</span>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h2>Tu negocio de confianza</h2>
+      <p>Articulos tecnologicos e indumentaria</p>
+    </div>
+  </section>
+
+  <!-- Productos -->
+  <section class="products" id="product-list"></section>
+
+  <!-- Carrito -->
+  <div class="cart-popup" id="cart-popup">
+    <h3>Carrito</h3>
+    <ul id="cart-items"></ul>
+    <div class="total">Total: <span id="cart-total">$0</span></div>
+    <button class="checkout-btn" id="checkout-btn">Finalizar compra</button>
+  </div>
+
+  <!-- Modal de opciones de pago -->
+  <div id="payment-options">
+    <h3>Elige tu método de pago</h3>
+    <button id="pay-card">Pagar con Mercado Pago</button>
+    <div id="wallet_container"></div>
+    <button id="cancel-btn" onclick="closePaymentOptions()">Cancelar</button>
+  </div>
+
+  <!-- Modal alias y número -->
+  <div id="alias-modal">
+    <h3><strong>Aquí el alias: agusoriginal</strong></h3>
+    <p><strong>Mandar comprobante al número: +54 9 11 3557-2878</strong></p>
+     <p><strong>Tambien mandar foto de los productos adquiridos</strong></p>
+    <button onclick="closeAliasModal()" style="background:#facc15;color:#000;">Cerrar</button>
+  </div>
+
+  <!-- Sección de contacto -->
+  <section class="contact-section">
+    <h3>Contáctenos:</h3>
+    <p>Instagram: <strong>@TU_INSTAGRAM</strong></p>
+    <p>Teléfono: <strong>+54 9 11 2748-6104</strong></p>
+  </section>
+
+  <footer>
+    © <span id="year"></span> STYLUM. Todos los derechos reservados.
+  </footer>
+
+  <script>
+    const products = [
+      { id: 1, name: 'Buzo Oversize Negro', price: 19990, image: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3a0e?auto=format&fit=crop&w=600&q=80' },
+      { id: 2, name: 'Conjunto Deportivo Blanco', price: 25990, image: 'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9ea?auto=format&fit=crop&w=600&q=80' },
+      { id: 3, name: 'Remera STYLUM Dorada', price: 14990, image: 'https://images.unsplash.com/photo-1618354691249-8831b3d6c5b2?auto=format&fit=crop&w=600&q=80' }
+    ];
+
+    const cart = [];
+    const productList = document.getElementById('product-list');
+    const cartPopup = document.getElementById('cart-popup');
+    const cartItems = document.getElementById('cart-items');
+    const cartCount = document.getElementById('cart-count');
+    const cartTotal = document.getElementById('cart-total');
+    const checkoutBtn = document.getElementById('checkout-btn');
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Renderizar productos con imagen y botón
+    products.forEach(product => {
+      const div = document.createElement('div');
+      div.className = 'product';
+
+      const img = document.createElement('img');
+      img.src = product.image;
+      img.alt = product.name;
+
+      const h3 = document.createElement('h3');
+      h3.textContent = product.name;
+
+      const p = document.createElement('p');
+      p.textContent = `$${product.price.toLocaleString('es-AR')}`;
+
+      const button = document.createElement('button');
+      button.textContent = 'Agregar al carrito';
+      button.onclick = () => addToCart(product.id);
+
+      div.append(img, h3, p, button);
+      productList.appendChild(div);
+    });
+
+    function addToCart(id) {
+      const product = products.find(p => p.id === id);
+      cart.push(product);
+      updateCart();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCart();
+    }
+
+    function updateCart() {
+      cartItems.innerHTML = '';
+      cart.forEach((item, index) => {
+        const li = document.createElement('li');
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = item.name;
+
+        const priceSpan = document.createElement('span');
+        priceSpan.textContent = `$${item.price.toLocaleString('es-AR')} `;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '❌';
+        removeBtn.onclick = () => removeFromCart(index);
+
+        priceSpan.appendChild(removeBtn);
+        li.append(nameSpan, priceSpan);
+        cartItems.appendChild(li);
+      });
+
+      cartCount.textContent = cart.length;
+      const total = cart.reduce((acc, item) => acc + item.price, 0);
+      cartTotal.textContent = `$${total.toLocaleString('es-AR')}`;
+    }
+
+    function toggleCart() {
+      cartPopup.style.display = cartPopup.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function closePaymentOptions() {
+      document.getElementById('payment-options').style.display = 'none';
+    }
+
+    function closeAliasModal() {
+      document.getElementById('alias-modal').style.display = 'none';
+    }
+
+    checkoutBtn.addEventListener('click', () => {
+      if (cart.length === 0) {
+        alert('Tu carrito está vacío.');
+        return;
+      }
+      cartPopup.style.display = 'none';
+      document.getElementById('payment-options').style.display = 'block';
+    });
+
+    document.getElementById('pay-card').addEventListener('click', () => {
+      document.getElementById('payment-options').style.display = 'none';
+      document.getElementById('alias-modal').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
